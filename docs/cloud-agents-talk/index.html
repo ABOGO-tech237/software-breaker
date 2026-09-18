@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cloud Agents Cursor — Cursor Cameroun · 19 sept. 2026</title>
+  <style>
+    :root {
+      --bg: #0b0b0c;
+      --fg: #f4f1ea;
+      --muted: #9a958c;
+      --dim: #5c5852;
+      --line: #2a2824;
+      --card: #141312;
+      --accent: #e8d5a3;
+      --ok: #b8d4a8;
+      --warn: #e0b089;
+      --bad: #d9a39a;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; height: 100%; background: var(--bg); color: var(--fg);
+      font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    }
+    body { overflow: hidden; }
+    #deck { height: 100%; }
+    .slide {
+      display: none; height: 100%; padding: clamp(28px, 5vw, 64px) clamp(28px, 6vw, 80px) 88px;
+      flex-direction: column; justify-content: center;
+    }
+    .slide.active { display: flex; }
+    .kicker {
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase;
+      color: var(--accent); margin: 0 0 16px;
+    }
+    h1, h2 { font-weight: 600; letter-spacing: -0.03em; line-height: 1.1; margin: 0 0 18px; }
+    h1 { font-size: clamp(34px, 5.4vw, 68px); max-width: 18ch; }
+    h2 { font-size: clamp(26px, 3.6vw, 46px); }
+    p, li { font-size: clamp(16px, 1.7vw, 22px); line-height: 1.45; }
+    p { margin: 0 0 14px; max-width: 46ch; color: #e7e2d6; }
+    .lede { font-size: clamp(18px, 2vw, 26px); max-width: 38ch; color: var(--fg); }
+    ul { margin: 0; padding: 0; list-style: none; max-width: 54ch; }
+    li { position: relative; padding: 7px 0 7px 22px; color: #e7e2d6; }
+    li::before { content: ""; position: absolute; left: 0; top: 0.72em; width: 8px; height: 1px; background: var(--accent); }
+    .grid { display: grid; gap: 16px; margin-top: 8px; }
+    .grid.two { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+    .card {
+      background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px;
+    }
+    .card h3 {
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--accent); margin: 0 0 8px; font-weight: 600;
+    }
+    .card p, .card li { font-size: 16px; margin: 0; max-width: none; }
+    .card ul { margin-top: 4px; }
+    .meta { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 14px; color: var(--muted); }
+    code, .mono {
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 0.86em; color: var(--accent);
+    }
+    table { border-collapse: collapse; width: min(920px, 100%); font-size: 15px; }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+    .tag {
+      display: inline-block; font-family: ui-sans-serif, system-ui, sans-serif;
+      font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 3px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted);
+    }
+    .tag.ok { color: var(--ok); border-color: #33402c; }
+    .tag.warn { color: var(--warn); border-color: #4a3724; }
+    .tag.bad { color: var(--bad); border-color: #4a2e2a; }
+    footer.bar {
+      position: fixed; left: 0; right: 0; bottom: 0; height: 44px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 20px; border-top: 1px solid var(--line); background: rgba(11,11,12,0.92);
+      font-family: ui-sans-serif, system-ui, sans-serif; font-size: 12px; color: var(--muted);
+    }
+    #progress { position: absolute; left: 0; top: 0; height: 2px; background: var(--accent); width: 0; }
+    button.ghost {
+      background: none; border: 0; color: var(--muted); cursor: pointer; font: inherit;
+    }
+    button.ghost:hover { color: var(--fg); }
+    #notes-panel {
+      display: none; position: fixed; right: 16px; bottom: 56px; width: min(420px, 92vw);
+      max-height: 42vh; overflow: auto; background: #1a1816; border: 1px solid var(--line);
+      border-radius: 12px; padding: 14px 16px; font-family: ui-sans-serif, system-ui, sans-serif;
+      font-size: 14px; line-height: 1.45; color: #ddd6c8; z-index: 4;
+    }
+    #notes-panel.open { display: block; }
+    #notes-panel strong { color: var(--accent); }
+    #help {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 5;
+      align-items: center; justify-content: center;
+    }
+    #help.open { display: flex; }
+    #help .card { width: min(440px, 90vw); }
+    .src { font-size: 13px; color: var(--dim); margin-top: 16px; font-family: ui-sans-serif, system-ui, sans-serif; }
+    @media (max-width: 720px) {
+      .slide { padding: 24px 20px 80px; }
+      h1 { max-width: none; }
+    }
+    @media print {
+      body { overflow: visible; background: #fff; color: #111; }
+      .slide { display: flex; page-break-after: always; height: auto; min-height: 100vh; color: #111; }
+      footer.bar, #notes-panel, #help { display: none !important; }
+      p, li { color: #222; }
+    }
+  </style>
+</head>
+<body>
+  <div id="progress"></div>
+  <div id="deck">
+
+    <section class="slide active" data-notes="On parle des Cloud Agents avec nos vrais repos. Faits produit = docs cursor.com uniquement. Si un repo n’était pas ouvrable, on le dit.">
+      <p class="kicker">Cursor Cameroun · samedi 19 septembre 2026</p>
+      <h1>Cloud Agents, sur nos projets.</h1>
+      <p class="lede">Même agent qu’en local. Autre machine. Branche isolée. PR à relire.</p>
+      <p class="meta">15–20 min · français · slides + notes · faits vérifiés sur cursor.com/docs</p>
+    </section>
+
+    <section class="slide" data-notes="L’agent local est déjà connu. Le plafond : un laptop, des conflits, rester en ligne. Le cloud : une VM par tâche.">
+      <p class="kicker">Pourquoi ce talk</p>
+      <h2>L’agent local suffit… jusqu’au plafond du laptop.</h2>
+      <ul>
+        <li>Plusieurs agents se marchent dessus et se partagent CPU, ports, fichiers.</li>
+        <li>Une tâche longue t’oblige à rester connecté.</li>
+        <li>Vérifier l’UI sans casser ton checkout courant est pénible.</li>
+      </ul>
+      <p class="src">Docs : cloud-agent.md — parallèle sans laptop en ligne. Blog Computer Use — conflits locaux.</p>
+    </section>
+
+    <section class="slide" data-notes="Trois blocs. Pas de métriques inventées.">
+      <p class="kicker">Agenda</p>
+      <h2>Produit, puis nos repos, puis trois démos.</h2>
+      <div class="grid two">
+        <div class="card"><h3>01 · Produit</h3><p>Cloud vs local, VM, branche, PR, lancement, Computer Use, usages, limites.</p></div>
+        <div class="card"><h3>02 · Cas réels</h3><p>Un slide concret par projet inspecté — ou un aveu d’inspection impossible.</p></div>
+        <div class="card"><h3>03 · Live</h3><p>Lancer un Cloud Agent. Montrer cette run. Bureau distant / artefacts.</p></div>
+        <div class="card"><h3>Règle</h3><p>Aucun résultat inventé. crew sans checkout local = omis.</p></div>
+      </div>
+    </section>
+
+    <section class="slide" data-notes="Lire la définition officielle. Ancien nom : Background Agents.">
+      <p class="kicker">Définition officielle</p>
+      <h2>Mêmes fondamentaux d’agent, dans une VM isolée.</h2>
+      <p>Le cloud clone le repo, installe l’environnement, et travaille comme un laptop de dev : deps, secrets, commandes de start, réseau.</p>
+      <ul>
+        <li>Peut builder, tester, et <em>interagir</em> avec le logiciel modifié.</li>
+        <li>MCP autorisé (HTTP recommandé ; stdio dans la VM).</li>
+        <li>Multi-repos possible ; le mode long-running n’y est pas encore.</li>
+      </ul>
+      <p class="src">cursor.com/docs/cloud-agent.md · Naming History : Background Agents</p>
+    </section>
+
+    <section class="slide" data-notes="Insister sur Move to Cloud : pas de dirty files. Worktrees = isolation locale.">
+      <p class="kicker">Cloud vs local</p>
+      <h2>Ce n’est pas le même disque.</h2>
+      <div class="grid two">
+        <div class="card">
+          <h3>Agent local</h3>
+          <ul>
+            <li>Tourne sur ta machine, sur ton checkout.</li>
+            <li>Worktree git : checkout isolé, parallèle sur le laptop.</li>
+            <li>Checkpoints locaux, hors git.</li>
+            <li>Hooks / skills de <code>~/.cursor</code> disponibles.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Cloud Agent</h3>
+          <ul>
+            <li>VM Ubuntu isolée, laptop optionnel.</li>
+            <li>Clone depuis GitHub / GitLab / Azure DevOps / Bitbucket.</li>
+            <li>« Move to Cloud » : historique de chat, <strong>pas</strong> les fichiers non commités.</li>
+            <li>Skills projet dans le repo ; skills perso si Sync Skills.</li>
+          </ul>
+        </div>
+      </div>
+      <p class="src">help/ai-features/cloud-agents · docs/configuration/worktrees · docs/cli/using</p>
+    </section>
+
+    <section class="slide" data-notes="Rien ne merge tout seul. Humain sur la PR draft. Isolation Firecracker.">
+      <p class="kicker">Comment ça travaille</p>
+      <h2>VM isolée → branche à part → PR draft.</h2>
+      <ul>
+        <li><strong>Start</strong> depuis web, IDE, CLI, Slack, issue/PR, API.</li>
+        <li><strong>Provision</strong> : microVM Firecracker, clone autorisé uniquement.</li>
+        <li><strong>Run</strong> sur une <strong>branche séparée</strong> (pas ton worktree local).</li>
+        <li><strong>Handoff</strong> : push + PR draft ; commits signés HSM Ed25519 (Verified).</li>
+        <li>Un agent ne voit pas le code ni l’état d’un autre agent.</li>
+      </ul>
+      <p class="src">docs/cloud-agent.md · docs/cloud-agent/security</p>
+    </section>
+
+    <section class="slide" data-notes="Montrer le dropdown Cloud si tu as l’IDE. Plan payant + SCM admin.">
+      <p class="kicker">Lancer</p>
+      <h2>Depuis l’endroit où tu travailles déjà.</h2>
+      <ul>
+        <li>Desktop : choisir <span class="mono">Cloud</span> sous le champ agent.</li>
+        <li>Web / Android PWA : <span class="mono">cursor.com/agents</span></li>
+        <li>iOS natif · Slack <span class="mono">@cursor</span> · Linear <span class="mono">@cursor</span></li>
+        <li>GitHub / Bitbucket : commenter <span class="mono">@cursor</span> sur une issue ou une PR.</li>
+        <li>CLI : préfixer un message par <span class="mono">&amp;</span> · API · Automations (cron / GitHub / Slack…).</li>
+      </ul>
+      <p class="src">Plan payant requis. Un admin doit d’abord connecter le SCM. docs/cloud-agent.md · help/cloud-agents</p>
+    </section>
+
+    <section class="slide" data-notes="Try Live n’est pas un nom docs. Dire Computer Use + remote desktop control.">
+      <p class="kicker">Computer Use</p>
+      <h2>L’agent a un bureau. Tu peux le prendre.</h2>
+      <ul>
+        <li>Souris + clavier + navigateur dans la VM (comme un humain).</li>
+        <li>Dev server → parcours UI → vérif avant la PR.</li>
+        <li>Artefacts : captures, vidéos, logs — optionnellement dans la description GitHub.</li>
+        <li><strong>Remote desktop control</strong> : tu testes sans checkout local, puis tu rends la main.</li>
+      </ul>
+      <p class="src">« Try Live » : <strong>non trouvé</strong> dans les docs officielles. capabilities.md · blog/agent-computer-use</p>
+    </section>
+
+    <section class="slide" data-notes="Rester factuel. Auto-fix CI = Teams + GHA + PR de l’agent.">
+      <p class="kicker">Bons usages documentés</p>
+      <h2>Déléguer ce qui se vérifie tout seul.</h2>
+      <ul>
+        <li>Feature, bug, tests, PR pendant que tu n’es pas devant la machine.</li>
+        <li>Plusieurs agents en parallèle, sans saturer le laptop.</li>
+        <li>Tâche qui traverse frontend / backend / infra (environnement multi-repos).</li>
+        <li>Kickoff depuis Slack, GitHub, Linear — puis suivi CI / commentaires (subscriptions).</li>
+        <li>Auto-fix CI GitHub Actions sur les PR <em>créées par l’agent</em> (plan Teams).</li>
+      </ul>
+    </section>
+
+    <section class="slide" data-notes="Citer cette VM : pas de /home/atangana/Projects. Dirty files perdus au Move to Cloud.">
+      <p class="kicker">Limites documentées</p>
+      <h2>Ce que le cloud ne fait pas (encore).</h2>
+      <ul>
+        <li>Sans environnement préparé, l’agent écrit du code qu’il ne peut pas prouver.</li>
+        <li>Pas tes edits locales non commitées. Pas tes hooks <span class="mono">~/.cursor</span>.</li>
+        <li>Long-running indisponible en multi-repos. Auto-CI : Teams + GHA seulement.</li>
+        <li>Pièces jointes web : 4 Mo docs / 15 Mo vidéo. ZIP non supporté.</li>
+        <li>Risque d’injection de prompt + exfiltration : restreindre l’egress.</li>
+        <li>Cette VM <strong>ne voyait pas</strong> les chemins frères du laptop.</li>
+      </ul>
+      <p class="src">help/cloud-agents · security · capabilities (CI) · observation run bc-af5de014…</p>
+    </section>
+
+    <section class="slide" data-notes="Transparence avant les cas. crew omis.">
+      <p class="kicker">Méthode</p>
+      <h2>Un slide par repo. Zéro fanfiction.</h2>
+      <table>
+        <thead><tr><th>Projet</th><th>Cette VM</th></tr></thead>
+        <tbody>
+          <tr><td>Cursor-Cameroun</td><td><span class="tag ok">clone public</span> Delmat237/Cursor-Cameroun</td></tr>
+          <tr><td>software-breaker</td><td><span class="tag ok">checkout de cette run</span></td></tr>
+          <tr><td>EatNext</td><td><span class="tag warn">public ABOGO-tech237</span> · studio-crafiti 404</td></tr>
+          <tr><td>MobiYaounde / mobileAI</td><td><span class="tag bad">remote introuvable</span></td></tr>
+          <tr><td>Openspace</td><td><span class="tag bad">remote introuvable</span></td></tr>
+          <tr><td>crew</td><td><span class="tag bad">pas de checkout local</span> · remote non inventé</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="slide" data-notes="Tâche concrète : event du 19 sept. + status périmés. Ne pas inventer un Luma.">
+      <p class="kicker">Cas 1 · inspecté</p>
+      <h2>Cursor-Cameroun — site officiel Next.js</h2>
+      <p class="meta">github.com/Delmat237/Cursor-Cameroun · cursor-cameroun-nine.vercel.app</p>
+      <ul>
+        <li>Next.js 16.2.5, next-intl FR/EN, Leaflet, admin + Resend, events en JSON, Drizzle.</li>
+        <li>Le 18 sept., <span class="mono">Café Douala</span> (10 juin) et <span class="mono">Meetup Yaoundé</span> (18 juil.) étaient encore <span class="mono">upcoming</span>.</li>
+        <li><strong>Tâche Cloud Agent :</strong> ajouter « Talk Cloud Agents · 19 sept. 2026 », recalculer les status, PR draft, Computer Use sur FR/EN + Events + thème.</li>
+        <li>README vs AGENT.md divergent sur la carte 10 régions : mesurer, ne pas inventer le score.</li>
+      </ul>
+    </section>
+
+    <section class="slide" data-notes="Ce talk EST la démo. Skill dans .cusor/ (typo du repo).">
+      <p class="kicker">Cas 2 · inspecté ici</p>
+      <h2>software-breaker — Full Chaos en skill</h2>
+      <p class="meta">github.com/ABOGO-tech237/software-breaker · workspace de cette run</p>
+      <ul>
+        <li>Skill + subagent : Scope → Map → Attack → Prove → Report → Improve.</li>
+        <li>Rapports FR/EN, findings reproductibles, <strong>pas de patch auto</strong>.</li>
+        <li><strong>Tâche Cloud Agent :</strong> pointer un module (auth, API, UI), produire le tableau de sévérité, ouvrir une PR draft qui ne contient que le rapport.</li>
+        <li>Bonus inspecté : le dossier du repo s’appelle <span class="mono">.cusor/</span> — un agent peut proposer le renommage + doc d’install, rien de plus.</li>
+      </ul>
+    </section>
+
+    <section class="slide" data-notes="Ne pas inventer Expo/Flutter/etc. Dire 404 et la prochaine action réelle.">
+      <p class="kicker">Cas 3 · non inspecté</p>
+      <h2>MobiYaounde / mobile_AI — remote inaccessible</h2>
+      <p class="meta">Demandé : git@github.com:ABOGO-tech237/mobileAI.git</p>
+      <ul>
+        <li><span class="mono">git ls-remote</span> et <span class="mono">gh repo view</span> : Repository not found.</li>
+        <li>Absent de la liste publique du compte. Aucun dossier frère sur cette VM.</li>
+        <li><strong>Ce qu’un Cloud Agent ferait une fois le repo connecté :</strong> cloner, cartographier l’app, proposer une PR draft bornée (rien d’inventé aujourd’hui).</li>
+        <li>Action humaine : ajouter le dépôt (s’il est privé) à l’environnement Cloud Agents.</li>
+      </ul>
+    </section>
+
+    <section class="slide" data-notes="Deux sources : README public + Notion 15 sept. On n’a pas lancé l’app.">
+      <p class="kicker">Cas 4 · inspecté via public + Notion</p>
+      <h2>EatNext — découverte restos Yaoundé</h2>
+      <p class="meta">Inspecté : ABOGO-tech237/EatNext · demandé studio-crafiti/EatNext = 404</p>
+      <ul>
+        <li>Monorepo : Express/Prisma/Postgres/Redis + Vite/React. Import Ayilaa ~1150 fiches, OSM.</li>
+        <li>Notion (15 sept.) : cœur = découverte + avis, pas la commande ; Crafti Studio ; FR / FCFA.</li>
+        <li><strong>Tâche Cloud Agent :</strong> secrets DB dans le dashboard, <span class="mono">.cursor/environment.json</span> (install + start Docker/Postgres), parcours recherche → fiche → avis, PR vers <span class="mono">develop</span>.</li>
+        <li>Cette VM n’a <strong>pas</strong> exécuté l’app : aucun bug « trouvé » à raconter.</li>
+      </ul>
+    </section>
+
+    <section class="slide" data-notes="Même discipline que mobileAI.">
+      <p class="kicker">Cas 5 · non inspecté</p>
+      <h2>Openspace — remote inaccessible</h2>
+      <p class="meta">Demandé : git@github.com:ABOGO-tech237/openSpace.git</p>
+      <ul>
+        <li>Introuvable en public, pas de clone, pas de README, pas de page Notion.</li>
+        <li>Pas de stack, pas de capture, pas de « l’agent a déjà fait X ».</li>
+        <li><strong>Tâche le jour où le remote répond :</strong> onboard environnement, une PR draft d’exploration (structure + risques + premier fix borné).</li>
+      </ul>
+    </section>
+
+    <section class="slide" data-notes="Une phrase. Ne pas improvisers un GitHub.">
+      <p class="kicker">Cas 6 · omis</p>
+      <h2>crew n’était pas sur cette machine.</h2>
+      <p class="lede">Consigne respectée : pas de remote inventé. Si crew est sur le laptop, un Cloud Agent ne le verra qu’après push + connexion SCM.</p>
+    </section>
+
+    <section class="slide" data-notes="Montrer l’URL si le réseau le permet. C’est le moment « ah ».">
+      <p class="kicker">Preuve de la soirée</p>
+      <h2>Ce deck a été écrit par un Cloud Agent.</h2>
+      <ul>
+        <li>Run : <span class="mono">cursor.com/agents/bc-af5de014-b7c3-4e96-a308-ef22f425faf7</span></li>
+        <li>Repo attaché : software-breaker — pas Cursor-Cameroun, malgré le chemin laptop.</li>
+        <li>Livrable : branche isolée, dossier <span class="mono">docs/cloud-agents-talk/</span>, PR à garder ou jeter.</li>
+        <li>Elle n’a pas fusionné dans <span class="mono">main</span>. C’est le contrat.</li>
+      </ul>
+    </section>
+
+    <section class="slide" data-notes="Enchaîner les 3 démos du README. Plan B = artefacts.">
+      <p class="kicker">Live · 3 idées</p>
+      <h2>Montrer, ne pas promettre.</h2>
+      <div class="grid two">
+        <div class="card">
+          <h3>1 · Lancer</h3>
+          <p>Cloud dropdown ou cursor.com/agents. Prompt : événement du 19 sept. sur Cursor-Cameroun + status périmés. PR draft, pas de merge.</p>
+        </div>
+        <div class="card">
+          <h3>2 · Cette run</h3>
+          <p>Ouvrir l’agent ou cette PR. Dire : isolation réelle — les repos frères du laptop étaient invisibles.</p>
+        </div>
+        <div class="card">
+          <h3>3 · Bureau / UI</h3>
+          <p>Computer Use ou remote desktop sur cursor-cameroun-nine.vercel.app (langue, Events, thème). Plan B : artefacts d’une run finie.</p>
+        </div>
+        <div class="card">
+          <h3>Si ça rame</h3>
+          <p>Ne pas improviser un succès. Revenir aux slides 12 et 18.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-notes="Close nette. Question sécu : profil différent, pas pire.">
+      <p class="kicker">À emporter</p>
+      <h2>Local pour itérer. Cloud pour isoler et prouver.</h2>
+      <ul>
+        <li>Le cloud n’est pas « plus magique » : c’est un laptop jetable + git.</li>
+        <li>La qualité suit l’environnement (install, secrets, réseau).</li>
+        <li>La revue humaine reste le merge gate — PR draft, commits signés.</li>
+        <li>Sur nos repos privés : d’abord les connecter, ensuite déléguer.</li>
+      </ul>
+    </section>
+
+    <section class="slide" data-notes="Pointer SOURCES.md. Questions.">
+      <p class="kicker">Sources · questions</p>
+      <h2>Vérifiable, pas mémorisé.</h2>
+      <p>docs/cloud-agent.md · capabilities · security · help/cloud-agents · worktrees · cli/using · blog/agent-computer-use</p>
+      <p class="lede">Qu’est-ce qu’on lance en cloud lundi sur un de ces repos ?</p>
+      <p class="meta">Artefacts optionnels dans docs/cloud-agents-talk/ · ne pas merger si tu n’en veux pas.</p>
+    </section>
+  </div>
+
+  <aside id="notes-panel"></aside>
+  <div id="help">
+    <div class="card">
+      <h3>Clavier</h3>
+      <p>→ Espace Entrée : suivant · ← Backspace : précédent</p>
+      <p>N : notes · F : plein écran · ? : cette aide · Échap : fermer</p>
+    </div>
+  </div>
+  <footer class="bar">
+    <span>Cursor Cameroun · Cloud Agents · 19 sept. 2026</span>
+    <span>
+      <button class="ghost" type="button" id="btn-notes">Notes (N)</button>
+      ·
+      <button class="ghost" type="button" id="btn-help">Aide (?)</button>
+      ·
+      <span id="counter">1 / 1</span>
+    </span>
+    <span>Faits : cursor.com/docs</span>
+  </footer>
+  <script>
+    const slides = [...document.querySelectorAll(".slide")];
+    const notes = document.getElementById("notes-panel");
+    const help = document.getElementById("help");
+    const counter = document.getElementById("counter");
+    const progress = document.getElementById("progress");
+    let i = 0;
+    function show(n) {
+      i = Math.max(0, Math.min(slides.length - 1, n));
+      slides.forEach((s, idx) => s.classList.toggle("active", idx === i));
+      notes.textContent = slides[i].dataset.notes || "";
+      counter.textContent = (i + 1) + " / " + slides.length;
+      progress.style.width = ((i + 1) / slides.length * 100) + "%";
+      history.replaceState(null, "", "#" + (i + 1));
+    }
+    function toggle(el) { el.classList.toggle("open"); }
+    document.getElementById("btn-notes").onclick = () => toggle(notes);
+    document.getElementById("btn-help").onclick = () => toggle(help);
+    document.addEventListener("keydown", (e) => {
+      if (["ArrowRight", " ", "Enter", "PageDown"].includes(e.key)) { e.preventDefault(); show(i + 1); }
+      if (["ArrowLeft", "Backspace", "PageUp"].includes(e.key)) { e.preventDefault(); show(i - 1); }
+      if (e.key === "Home") show(0);
+      if (e.key === "End") show(slides.length - 1);
+      if (e.key === "n" || e.key === "N") toggle(notes);
+      if (e.key === "?" || e.key === "h" || e.key === "H") toggle(help);
+      if (e.key === "f" || e.key === "F") {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+        else document.exitFullscreen();
+      }
+      if (e.key === "Escape") { notes.classList.remove("open"); help.classList.remove("open"); }
+    });
+    const start = Math.max(1, parseInt(location.hash.replace("#", ""), 10) || 1) - 1;
+    show(start);
+    notes.classList.add("open");
+  </script>
+</body>
+</html>
